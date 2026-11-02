@@ -1,6 +1,6 @@
 WITH
 emp_idx AS (
-  SELECT column_id - 8 idx FROM sys.dba_tab_columns
+  SELECT column_id - 8 idx FROM all_tab_columns
   WHERE owner = 'APPLSYS' AND table_name = 'FND_USER_A' AND column_name = 'EMPLOYEE_ID'
 ),
 ua AS (
@@ -34,7 +34,7 @@ person_chg AS (
   JOIN applsys.fnd_user u ON u.user_id = ua.user_id
 ),
 pos_idx AS (
-  SELECT column_id - 8 idx FROM sys.dba_tab_columns
+  SELECT column_id - 8 idx FROM all_tab_columns
   WHERE owner = 'HR' AND table_name = 'PER_ALL_ASSIGNMENTS_F_A' AND column_name = 'POSITION_ID'
 ),
 aud AS (
