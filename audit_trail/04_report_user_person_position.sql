@@ -87,7 +87,9 @@ pos_raw AS (
 position_chg AS (
   SELECT p.audit_timestamp, p.audit_user_name, 'DOI_POSITION' loai, CAST(p.kieu AS VARCHAR2(10)) kieu,
          p.effective_start_date hieu_luc_tu,
-         (SELECT LISTAGG(u.user_name, ', ') WITHIN GROUP (ORDER BY u.user_name)
+         -- 1 user dai dien + so user con lai (tranh ORA-01489 khi Person gan nhieu user)
+         (SELECT MIN(u.user_name)
+                 || CASE WHEN COUNT(*) > 1 THEN ' (+' || (COUNT(*) - 1) || ' user)' END
             FROM applsys.fnd_user u WHERE u.employee_id = p.person_id) ebs_user,
          p.person_id old_person_id, p.person_id new_person_id,
          p.old_pos_id, p.new_pos_id
