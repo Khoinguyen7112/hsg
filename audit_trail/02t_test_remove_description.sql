@@ -59,7 +59,7 @@ BEGIN
 
   SELECT COUNT(*) INTO l_triggers
   FROM   dba_triggers
-  WHERE  table_name = 'FND_USER'
+  WHERE  owner = 'APPS'   -- 12.2: trigger gan vao editioning view FND_USER#, khong loc theo table_name
     AND  trigger_name IN ('FND_USER_AI','FND_USER_AU','FND_USER_AD',
                           'FND_USER_AH','FND_USER_AT','FND_USER_AC');
 
