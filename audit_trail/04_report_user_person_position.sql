@@ -120,6 +120,16 @@ position_chg AS (
          p.old_pos_id, p.new_pos_id
   FROM pos_raw p
 ),
+seg_vs AS (
+  SELECT s.application_column_name col, s.flex_value_set_id vs_id
+  FROM apps.fnd_id_flex_segments_vl s
+  JOIN apps.fnd_id_flex_structures_vl st
+    ON st.application_id = s.application_id AND st.id_flex_code = s.id_flex_code
+   AND st.id_flex_num = s.id_flex_num
+  WHERE s.application_id = 800 AND s.id_flex_code = 'POS'
+    AND st.id_flex_structure_code = 'POSITION_FLEXFIELD'
+    AND s.application_column_name IN ('SEGMENT1','SEGMENT2','SEGMENT3')
+),
 ev AS (
   SELECT * FROM person_chg
   UNION ALL
@@ -134,15 +144,25 @@ SELECT ev.audit_timestamp   thoi_diem_doi,
        po.full_name         person_cu,
        pn.full_name         person_moi,
        hpo.name             position_cu,
-       ddo.segment1 pos_cu_seg1, ddo.segment2 pos_cu_seg2, ddo.segment3 pos_cu_seg3,
-       ddo.segment4 pos_cu_seg4, ddo.segment5 pos_cu_seg5, ddo.segment6 pos_cu_seg6,
-       ddo.segment7 pos_cu_seg7, ddo.segment8 pos_cu_seg8, ddo.segment9 pos_cu_seg9,
-       ddo.segment10 pos_cu_seg10,
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT1')
+           AND fv.flex_value = ddo.segment1) pos_cu_don_vi,
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT2')
+           AND fv.flex_value = ddo.segment2) pos_cu_phong_ban,
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT3')
+           AND fv.flex_value = ddo.segment3) pos_cu_chuc_vu,
        hpn.name             position_moi,
-       ddn.segment1 pos_moi_seg1, ddn.segment2 pos_moi_seg2, ddn.segment3 pos_moi_seg3,
-       ddn.segment4 pos_moi_seg4, ddn.segment5 pos_moi_seg5, ddn.segment6 pos_moi_seg6,
-       ddn.segment7 pos_moi_seg7, ddn.segment8 pos_moi_seg8, ddn.segment9 pos_moi_seg9,
-       ddn.segment10 pos_moi_seg10
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT1')
+           AND fv.flex_value = ddn.segment1) pos_moi_don_vi,
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT2')
+           AND fv.flex_value = ddn.segment2) pos_moi_phong_ban,
+       (SELECT MAX(fv.description) FROM apps.fnd_flex_values_vl fv
+         WHERE fv.flex_value_set_id = (SELECT vs_id FROM seg_vs WHERE col = 'SEGMENT3')
+           AND fv.flex_value = ddn.segment3) pos_moi_chuc_vu
 FROM ev
 LEFT JOIN apps.per_all_people_f po
        ON po.person_id = ev.old_person_id
