@@ -45,27 +45,7 @@ pk AS (
   SELECT audit_timestamp, new_person_id FROM ub WHERE new_person_id IS NOT NULL
 ),
 asg_at AS (
-  SELECT pk.ts, pk.person_id,
-         CASE
-           WHEN (SELECT COUNT(*) FROM aud i
-                  WHERE i.audit_transaction_type = 'I'
-                    AND i.assignment_id = a.assignment_id
-                    AND i.effective_start_date = a.effective_start_date
-                    AND i.audit_timestamp > pk.ts) > 0
-           THEN (SELECT p.position_id FROM apps.per_all_assignments_f p
-                  WHERE p.assignment_id = a.assignment_id
-                    AND p.effective_end_date = a.effective_start_date - 1)
-           WHEN (SELECT COUNT(*) FROM pos_fix f
-                  WHERE f.assignment_id = a.assignment_id
-                    AND f.effective_start_date = a.effective_start_date
-                    AND f.audit_timestamp > pk.ts) > 0
-           THEN (SELECT MAX(f.old_pos_id) KEEP (DENSE_RANK FIRST ORDER BY f.audit_timestamp, f.audit_sequence_id)
-                   FROM pos_fix f
-                  WHERE f.assignment_id = a.assignment_id
-                    AND f.effective_start_date = a.effective_start_date
-                    AND f.audit_timestamp > pk.ts)
-           ELSE a.position_id
-         END position_id
+  SELECT pk.ts, pk.person_id, a.position_id
   FROM pk
   JOIN apps.per_all_assignments_f a
     ON a.person_id = pk.person_id
