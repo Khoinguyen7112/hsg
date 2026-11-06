@@ -66,6 +66,15 @@ BEGIN
       'Audit &p_table dang bat (tables E/R=' || l_active || ', triggers=' || l_triggers || '). Tat group truoc.');
   END IF;
 
+  SELECT COUNT(*) INTO l_deleted
+  FROM   apps.fnd_columns
+  WHERE  application_id = l_app_id AND table_id = l_tab_id
+    AND  column_name IN (&p_drop_cols)
+    AND  column_name LIKE '%\_ID' ESCAPE '\';
+  IF l_deleted > 0 THEN
+    RAISE_APPLICATION_ERROR(-20003, 'Danh sach xoa co cot *_ID. Khong duoc xoa cot ID.');
+  END IF;
+
   DELETE FROM apps.fnd_audit_columns ac
   WHERE  ac.table_app_id = l_app_id
     AND  ac.table_id = l_tab_id
