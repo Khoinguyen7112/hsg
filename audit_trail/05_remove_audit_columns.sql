@@ -10,8 +10,9 @@ SET VERIFY OFF
 WHENEVER SQLERROR EXIT FAILURE ROLLBACK
 
 DEFINE p_table     = FND_USER
-DEFINE p_drop_cols = 'DESCRIPTION'
+DEFINE p_drop_cols = 'LAST_UPDATED_BY','LAST_UPDATE_DATE','DESCRIPTION','END_DATE','START_DATE','EMAIL_ADDRESS'
 DEFINE bk_schema   = HSG
+DEFINE do_backup   = N
 
 PROMPT ===== [1] Cau hinh hien tai =====
 SELECT c.column_name, ac.schema_id, ac.state
@@ -26,6 +27,10 @@ PROMPT ===== [2] Sao luu FND_AUDIT_COLUMNS =====
 DECLARE
   l_bk VARCHAR2(30) := 'BK_AUDCOL_' || TO_CHAR(SYSDATE, 'YYMMDDHH24MISS');
 BEGIN
+  IF '&do_backup' <> 'Y' THEN
+    dbms_output.put_line('Bo qua sao luu (do_backup = &do_backup).');
+    RETURN;
+  END IF;
   EXECUTE IMMEDIATE
     'CREATE TABLE &bk_schema..' || l_bk || ' AS ' ||
     'SELECT ac.*, SYSDATE backup_date FROM apps.fnd_audit_columns ac ' ||
